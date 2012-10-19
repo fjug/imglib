@@ -29,7 +29,7 @@ public class Example1d
 		// display only the part of the Img
 		ImageJFunctions.show( view );
 
-		// or the same area rotated by 90 degrees (x-axis (0) and y-axis (1) switched)
+		// or the same area rotated by 90 degrees (x-axis (0) is mapped onto the y-axis (1))
 		ImageJFunctions.show( Views.rotate( view, 0, 1 ) );
 	}
 
