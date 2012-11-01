@@ -34,42 +34,55 @@
  * #L%
  */
 
+package net.imglib2.ops.pointset;
 
-package net.imglib2.ops.condition;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
-import net.imglib2.ops.function.Function;
-import net.imglib2.ops.relation.BinaryRelation;
+import org.junit.Test;
 
 /**
- * 
  * @author Barry DeZonia
  */
-public class BinaryCondition<INPUT,O1,O2> implements Condition<INPUT> {
+public class OnePointSetIteratorTest {
 
-	private final Function<INPUT,O1> f1;
-	private final Function<INPUT,O2> f2;
-	private final O1 f1Val;
-	private final O2 f2Val;
-	private final BinaryRelation<O1,O2> relation;
+	@Test
+	public void test() {
 
-	public BinaryCondition(Function<INPUT,O1> f1, Function<INPUT,O2> f2, BinaryRelation<O1,O2> relation) {
-		this.f1 = f1;
-		this.f2 = f2;
-		this.f1Val = f1.createOutput();
-		this.f2Val = f2.createOutput();
-		this.relation = relation;
-	}
-	
-	@Override
-	public boolean isTrue(INPUT input) {
-		f1.compute(input, f1Val);
-		f2.compute(input, f2Val);
-		return relation.holds(f1Val,f2Val);
-	}
-	
-	@Override
-	public BinaryCondition<INPUT,O1,O2> copy() {
-		return new BinaryCondition<INPUT,O1,O2>(f1.copy(), f2.copy(), relation.copy());
+		long[] point = new long[] { 1, 2, 3 };
+		PointSet ps = new OnePointSet(point);
+		PointSetIterator iter = ps.iterator();
+
+		// regular test
+
+		assertTrue(iter.hasNext());
+		assertTrue(iter.hasNext());
+		assertArrayEquals(point, iter.next());
+		assertFalse(iter.hasNext());
+		assertFalse(iter.hasNext());
+
+		// another regular test
+		iter.reset();
+		assertTrue(iter.hasNext());
+		assertTrue(iter.hasNext());
+		iter.fwd();
+		assertArrayEquals(point, iter.get());
+		assertFalse(iter.hasNext());
+		assertFalse(iter.hasNext());
+
+		// weird orders
+		iter.reset();
+		assertTrue(iter.hasNext());
+		assertTrue(iter.hasNext());
+		iter.fwd();
+		assertEquals(1, iter.getLongPosition(0));
+		assertEquals(2, iter.getLongPosition(1));
+		assertEquals(3, iter.getLongPosition(2));
+		assertArrayEquals(point, iter.get());
+		assertFalse(iter.hasNext());
+		assertFalse(iter.hasNext());
 	}
 
 }

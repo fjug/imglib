@@ -34,21 +34,38 @@
  * #L%
  */
 
-package net.imglib2.ops.operation.randomaccessibleinterval.unary.regiongrowing;
 
-public class ThreadSafeLabelNumbers
-{
+package net.imglib2.ops.relation.general.binary;
 
-	// Current labelnumber
-	private int m_labelNumber;
+import net.imglib2.ops.relation.BinaryRelation;
 
-	public ThreadSafeLabelNumbers()
-	{
-		m_labelNumber = 1;
+/**
+ * Combines two other {@link BinaryRelation}s in an XOR fashion. The relation
+ * holds if one and only one of the child relations hold.
+ * 
+ * @author Barry DeZonia
+ */
+public final class XorRelation<T,U> implements BinaryRelation<T,U> {
+
+	private final BinaryRelation<T,U> rel1;
+	private final BinaryRelation<T,U> rel2;
+
+	public XorRelation(BinaryRelation<T,U> rel1,BinaryRelation<T,U> rel2) {
+		this.rel1 = rel1;
+		this.rel2 = rel2;
+	}
+	
+	@Override
+	public boolean holds(T val1, U val2) {
+		boolean oneHolds = rel1.holds(val1, val2);
+		boolean twoHolds = rel2.holds(val1, val2);
+		if (oneHolds & !twoHolds) return true;
+		if (!oneHolds & twoHolds) return true;
+		return false;
 	}
 
-	public final synchronized int aquireNewLabelNumber()
-	{
-		return m_labelNumber++;
+	@Override
+	public XorRelation<T,U> copy() {
+		return new XorRelation<T,U>(rel1.copy(), rel2.copy());
 	}
 }

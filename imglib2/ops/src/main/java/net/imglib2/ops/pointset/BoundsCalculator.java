@@ -34,119 +34,70 @@
  * #L%
  */
 
-package net.imglib2.converter;
 
-import net.imglib2.Interval;
-import net.imglib2.Positionable;
-import net.imglib2.RandomAccessibleInterval;
-import net.imglib2.RealPositionable;
+package net.imglib2.ops.pointset;
 
 /**
- * TODO
- *
+ * Helper class for tracking bounds of a region. Used by some {@link PointSet}
+ * implementations.
+ * 
+ * @author Barry DeZonia
  */
-abstract public class AbstractConvertedRandomAccessibleInterval< A, B > implements RandomAccessibleInterval< B >
-{
-	final protected RandomAccessibleInterval< A > source;
+public class BoundsCalculator {
+	
+	// -- instance variables --
+	
+	private long[] min, max;
 
-	public AbstractConvertedRandomAccessibleInterval( final RandomAccessibleInterval< A > source )
-	{
-		this.source = source;
+	// -- constructor --
+	
+	public BoundsCalculator() {
+	}
+	
+	// -- protected API --
+	
+	public long[] getMin() {
+		return min;
+	}
+	
+	public long[] getMax() {
+		return max;
+	}
+	
+	public void calc(PointSet ps) {
+		PointSetIterator iter = ps.iterator();
+		boolean invalid = true;
+		while (iter.hasNext()) {
+			long[] point = iter.next();
+			if (invalid) {
+				invalid = false;
+				setMax(point);
+				setMin(point);
+			}
+			else {
+				updateMax(point);
+				updateMin(point);
+			}
+		}
 	}
 
-	@Override
-	public int numDimensions()
-	{
-		return source.numDimensions();
+	private void setMin(long[] p) {
+		min = p.clone();
 	}
-
-	@Override
-	abstract public AbstractConvertedRandomAccess< A, B > randomAccess();
-
-	@Override
-	abstract public AbstractConvertedRandomAccess< A, B > randomAccess( final Interval interval );
-
-	@Override
-	public long min( final int d )
-	{
-		return source.min( d );
+	
+	private void setMax(long[] p) {
+		max = p.clone();
 	}
-
-	@Override
-	public void min( final long[] min )
-	{
-		source.min( min );
+	
+	private void updateMin(long[] p) {
+		for (int i = 0; i < min.length; i++) {
+			if (p[i] < min[i]) min[i] = p[i];
+		}
 	}
-
-	@Override
-	public void min( final Positionable min )
-	{
-		source.min( min );
-	}
-
-	@Override
-	public long max( final int d )
-	{
-		return source.max( d );
-	}
-
-	@Override
-	public void max( final long[] max )
-	{
-		source.max( max );
-	}
-
-	@Override
-	public void max( final Positionable max )
-	{
-		source.max( max );
-	}
-
-	@Override
-	public void dimensions( final long[] dimensions )
-	{
-		source.dimensions( dimensions );
-	}
-
-	@Override
-	public long dimension( final int d )
-	{
-		return source.dimension( d );
-	}
-
-	@Override
-	public double realMin( final int d )
-	{
-		return source.realMin( d );
-	}
-
-	@Override
-	public void realMin( final double[] min )
-	{
-		source.realMin( min );
-	}
-
-	@Override
-	public void realMin( final RealPositionable min )
-	{
-		source.realMin( min );
-	}
-
-	@Override
-	public double realMax( final int d )
-	{
-		return source.realMax( d );
-	}
-
-	@Override
-	public void realMax( final double[] max )
-	{
-		source.realMax( max );
-	}
-
-	@Override
-	public void realMax( final RealPositionable max )
-	{
-		source.realMax( max );
+	
+	private void updateMax(long[] p) {
+		for (int i = 0; i < max.length; i++) {
+			if (p[i] > max[i]) max[i] = p[i];
+		}
 	}
 }

@@ -35,47 +35,55 @@
  */
 
 
-package net.imglib2.ops.condition;
+package net.imglib2.ops.function.real;
 
 import net.imglib2.ops.function.Function;
-import net.imglib2.ops.relation.BinaryRelation;
-import net.imglib2.type.numeric.real.DoubleType;
+import net.imglib2.ops.pointset.PointSet;
+import net.imglib2.type.numeric.RealType;
+
 
 /**
-* 
-* @author Barry DeZonia
-*
-*/
-public class RelationalCondition implements Condition<long[]> {
+ * Computes the standard deviation of a population of values of another function.
+ * Normally one is interested in the standard deviation of a sample of values
+ * and in such cases one should use {@link RealSampleStdDevFunction}. But if
+ * the values in the region contain the full population of values then use this.
+ * 
+ * @author Barry DeZonia
+ */
+public class RealPopulationStdDevFunction<T extends RealType<T>>
+	implements Function<PointSet,T>
+{
+	// -- instance variables --
 	
-	private BinaryRelation<DoubleType,DoubleType> relop;
-	private Function<long[],DoubleType> f1;
-	private Function<long[],DoubleType> f2;
-	private DoubleType tmp1;
-	private DoubleType tmp2;
+	private final Function<long[],T> otherFunc;
+	private StatCalculator<T> calculator;
 	
-	public RelationalCondition(
-		BinaryRelation<DoubleType,DoubleType> relop,
-		Function<long[],DoubleType> f1,
-		Function<long[],DoubleType> f2)
+	// -- constructor --
+	
+	public RealPopulationStdDevFunction(Function<long[],T> otherFunc)
 	{
-		this.relop = relop;
-		this.f1 = f1;
-		this.f2 = f2;
-		tmp1 = new DoubleType();
-		tmp2 = new DoubleType();
+		this.otherFunc = otherFunc;
+		this.calculator = null;
+	}
+	
+	// -- Function methods --
+	
+	@Override
+	public RealPopulationStdDevFunction<T> copy() {
+		return new RealPopulationStdDevFunction<T>(otherFunc.copy());
 	}
 
 	@Override
-	public boolean isTrue(long[] input) {
-		f1.compute(input, tmp1);
-		f2.compute(input, tmp2);
-		return relop.holds(tmp1, tmp2);
+	public void compute(PointSet input, T output) {
+		if (calculator == null) calculator = new StatCalculator<T>(otherFunc, input);
+		else calculator.reset(otherFunc, input);
+		double value = calculator.populationStdDev();
+		output.setReal(value);
 	}
 
 	@Override
-	public RelationalCondition copy() {
-		return new RelationalCondition(
-				relop.copy(), f1.copy(), f2.copy());
+	public T createOutput() {
+		return otherFunc.createOutput();
 	}
+
 }

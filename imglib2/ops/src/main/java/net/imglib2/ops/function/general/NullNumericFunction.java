@@ -35,43 +35,44 @@
  */
 
 
-package net.imglib2.ops.pointset;
+package net.imglib2.ops.function.general;
+
+import net.imglib2.ops.function.Function;
+import net.imglib2.type.numeric.ComplexType;
+
 
 /**
+ * A {@link Function} that always returns NaN values.
  * 
  * @author Barry DeZonia
  */
-public abstract class AbstractBoundedRegion {
-	private long[] min, max;
+public class NullNumericFunction<INPUT, T extends ComplexType<T>>
+	implements Function<INPUT,T>
+{
+	// -- instance variables --
+	
+	private T type;
+	
+	// -- constructor --
+	
+	public NullNumericFunction(T type) {
+		this.type = type;
+	}
+	
+	// -- Function methods --
+	
+	@Override
+	public void compute(INPUT point, T output) {
+		output.setComplexNumber(Double.NaN, Double.NaN);
+	}
 
-	public AbstractBoundedRegion() {
+	@Override
+	public T createOutput() {
+		return type.createVariable();
 	}
-	
-	protected long[] getMin() {
-		return min;
-	}
-	
-	protected long[] getMax() {
-		return max;
-	}
-	
-	protected void setMin(long[] p) {
-		min = p.clone();
-	}
-	
-	protected void setMax(long[] p) {
-		max = p.clone();
-	}
-	
-	protected void updateMin(long[] p) {
-		for (int i = 0; i < min.length; i++) {
-			if (p[i] < min[i]) min[i] = p[i];
-		}
-	}
-	
-	protected void updateMax(long[] p) {
-		for (int i = 0; i < max.length; i++) {
-			if (p[i] > max[i]) max[i] = p[i];
-		}
+
+	@Override
+	public NullNumericFunction<INPUT,T> copy() {
+		return new NullNumericFunction<INPUT,T>(type.copy());
 	}
 }

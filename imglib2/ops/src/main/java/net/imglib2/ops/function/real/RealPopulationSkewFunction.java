@@ -34,51 +34,56 @@
  * #L%
  */
 
-package net.imglib2.ops.operation.img.unary;
 
-import net.imglib2.img.Img;
-import net.imglib2.ops.img.ConcatenatedBufferedUnaryOperation;
-import net.imglib2.ops.operation.UnaryOperation;
+package net.imglib2.ops.function.real;
+
+import net.imglib2.ops.function.Function;
+import net.imglib2.ops.pointset.PointSet;
 import net.imglib2.type.numeric.RealType;
 
-public class IterativeImgToImgOperation< TT extends RealType< TT >> extends ConcatenatedBufferedUnaryOperation< Img< TT >>
+
+/**
+ * Computes the skew of a population of values of another function.
+ * Normally one is interested in the skew of a sample of values and
+ * in such cases one should use {@link RealSampleSkewFunction}. But if
+ * the values in the region contain the full population of values then use this.
+ * 
+ * @author Barry DeZonia
+ */
+public class RealPopulationSkewFunction<T extends RealType<T>>
+	implements Function<PointSet,T>
 {
-
-	private final UnaryOperation< Img< TT >, Img< TT >> m_op;
-
-	private final int m_numIterations;
-
-	public IterativeImgToImgOperation( UnaryOperation< Img< TT >, Img< TT >> op, int numIterations )
+	// -- instance variables --
+	
+	private final Function<long[],T> otherFunc;
+	private StatCalculator<T> calculator;
+	
+	// -- constructor --
+	
+	public RealPopulationSkewFunction(Function<long[],T> otherFunc)
 	{
-		super( getOpArray( op, numIterations ) );
-		m_op = op;
-		m_numIterations = numIterations;
-
+		this.otherFunc = otherFunc;
+		this.calculator = null;
 	}
-
-	private static < TTT extends RealType< TTT >> UnaryOperation< Img< TTT >, Img< TTT >>[] getOpArray( UnaryOperation< Img< TTT >, Img< TTT >> op, int numIterations )
-	{
-
-		@SuppressWarnings( "unchecked" )
-		UnaryOperation< Img< TTT >, Img< TTT >>[] ops = new UnaryOperation[ numIterations ];
-
-		for ( int i = 0; i < numIterations; i++ )
-		{
-			ops[ i ] = op.copy();
-		}
-
-		return ops;
+	
+	// -- Function methods --
+	
+	@Override
+	public RealPopulationSkewFunction<T> copy() {
+		return new RealPopulationSkewFunction<T>(otherFunc.copy());
 	}
 
 	@Override
-	protected Img< TT > getBuffer( Img< TT > input )
-	{
-		return input.factory().create( input, input.firstElement().createVariable() );
+	public void compute(PointSet input, T output) {
+		if (calculator == null) calculator = new StatCalculator<T>(otherFunc, input);
+		else calculator.reset(otherFunc, input);
+		double value = calculator.populationSkew();
+		output.setReal(value);
 	}
 
 	@Override
-	public UnaryOperation< Img< TT >, Img< TT >> copy()
-	{
-		return new IterativeImgToImgOperation< TT >( m_op.copy(), m_numIterations );
+	public T createOutput() {
+		return otherFunc.createOutput();
 	}
+
 }

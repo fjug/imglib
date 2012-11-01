@@ -37,6 +37,7 @@
 
 package net.imglib2.ops.pointset;
 
+import net.imglib2.AbstractCursor;
 
 /**
  * PointSetIntersection is a {@link PointSet} that consists of the set of
@@ -45,11 +46,12 @@ package net.imglib2.ops.pointset;
  * 
  * @author Barry DeZonia
  */
-public class PointSetIntersection extends AbstractBoundedRegion implements PointSet {
+public class PointSetIntersection implements PointSet {
 	
 	// -- instance variables --
 	
 	private final PointSet a, b;
+	private final BoundsCalculator calculator;
 	private boolean boundsInvalid;
 	
 	// -- constructor --
@@ -59,6 +61,7 @@ public class PointSetIntersection extends AbstractBoundedRegion implements Point
 			throw new IllegalArgumentException();
 		this.a = a;
 		this.b = b;
+		calculator = new BoundsCalculator();
 		boundsInvalid = true;
 	}
 	
@@ -77,7 +80,7 @@ public class PointSetIntersection extends AbstractBoundedRegion implements Point
 	}
 	
 	@Override
-	public PointSetIterator createIterator() {
+	public PointSetIterator iterator() {
 		return new PointSetIntersectionIterator();
 	}
 	
@@ -91,20 +94,26 @@ public class PointSetIntersection extends AbstractBoundedRegion implements Point
 	
 	@Override
 	public long[] findBoundMin() {
-		if (boundsInvalid) calcBounds();
-		return getMin();
+		if (boundsInvalid) {
+			calculator.calc(this);
+			boundsInvalid = false;
+		}
+		return calculator.getMin();
 	}
 
 	@Override
 	public long[] findBoundMax() {
-		if (boundsInvalid) calcBounds();
-		return getMax();
+		if (boundsInvalid) {
+			calculator.calc(this);
+			boundsInvalid = false;
+		}
+		return calculator.getMax();
 	}
 
 	@Override
 	public long calcSize() {
 		long numElements = 0;
-		PointSetIterator iter = createIterator();
+		PointSetIterator iter = iterator();
 		while (iter.hasNext()) {
 			iter.next();
 			numElements++;
@@ -119,50 +128,83 @@ public class PointSetIntersection extends AbstractBoundedRegion implements Point
 	
 	// -- private helpers --
 	
-	private void calcBounds() {
-		PointSetIterator iter = createIterator();
-		while (iter.hasNext()) {
-			long[] point = iter.next();
-			if (boundsInvalid) {
-				boundsInvalid = false;
-				setMax(point);
-				setMin(point);
-			}
-			else {
-				updateMax(point);
-				updateMin(point);
-			}
-		}
-	}
-	
-	private class PointSetIntersectionIterator implements PointSetIterator {
-		
+	private class PointSetIntersectionIterator extends AbstractCursor<long[]>
+		implements PointSetIterator
+	{
 		private final PointSetIterator aIter;
-		private long[] next;
+		private long[] curr;
+		private long[] nextCache;
 		
 		public PointSetIntersectionIterator() {
-			aIter = a.createIterator();
-			next = null;
+			super(a.numDimensions());
+			aIter = a.iterator();
+			reset();
 		}
 		
 		@Override
 		public boolean hasNext() {
-			while (aIter.hasNext()) {
-				next = aIter.next();
-				if (b.includes(next)) return true;
-			}
-			return false;
-		}
-		
-		@Override
-		public long[] next() {
-			return next;
+			if (nextCache != null) return true;
+			return positionToNext();
 		}
 		
 		@Override
 		public void reset() {
 			aIter.reset();
+			curr = null;
+			nextCache = null;
 		}
+		
+		@Override
+		public long[] get() {
+			return curr;
+		}
+
+		@Override
+		public void fwd() {
+			if ((nextCache != null) || (positionToNext())) {
+				if (curr == null) curr = new long[n];
+				for (int i = 0; i < n; i++)
+					curr[i] = nextCache[i];
+				nextCache = null;
+				return;
+			}
+			throw new IllegalArgumentException("fwd() cannot go beyond end");
+		}
+
+		@Override
+		public void localize(long[] position) {
+			for (int i = 0; i < n; i++) {
+				position[i] = curr[i];
+			}
+		}
+
+		@Override
+		public long getLongPosition(int d) {
+			return curr[d];
+		}
+
+		@Override
+		public AbstractCursor<long[]> copy() {
+			return new PointSetIntersectionIterator();
+		}
+
+		@Override
+		public AbstractCursor<long[]> copyCursor() {
+			return copy();
+		}
+
+		private boolean positionToNext() {
+			nextCache = null;
+			while (aIter.hasNext()) {
+				long[] pos = aIter.next();
+				if (b.includes(pos)) {
+					nextCache = pos;
+					return true;
+				}
+			}
+			return false;
+		}
+
 	}
 }
 

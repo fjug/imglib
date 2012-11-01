@@ -34,37 +34,66 @@
  * #L%
  */
 
+package net.imglib2.ops.pointset;
 
-package net.imglib2.ops.condition;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
-import net.imglib2.ops.function.Function;
-import net.imglib2.ops.relation.UnaryRelation;
+import org.junit.Test;
 
 
 /**
- * 
  * @author Barry DeZonia
  */
-public class UnaryCondition<INPUT, T> implements Condition<INPUT> {
+public class PointSetIntersectionIteratorTest {
 
-	private final Function<INPUT,T> f1;
-	private final T f1Val;
-	private final UnaryRelation<T> relation;
+	@Test
+	public void test() {
+		PointSet ps1 = new HyperVolumePointSet(new long[] { 0 }, new long[] { 10 });
+		PointSet ps2 = new HyperVolumePointSet(new long[] { 7 }, new long[] { 15 });
+		PointSet ps = new PointSetIntersection(ps1, ps2);
+		PointSetIterator iter = ps.iterator();
 
-	public UnaryCondition(Function<INPUT,T> f1, UnaryRelation<T> relation) {
-		this.f1 = f1;
-		this.f1Val = f1.createOutput();
-		this.relation = relation;
+		// regular sequence
+		assertTrue(iter.hasNext());
+		assertArrayEquals(new long[] { 7 }, iter.next());
+		assertTrue(iter.hasNext());
+		assertArrayEquals(new long[] { 8 }, iter.next());
+		assertTrue(iter.hasNext());
+		assertArrayEquals(new long[] { 9 }, iter.next());
+		assertTrue(iter.hasNext());
+		assertArrayEquals(new long[] { 10 }, iter.next());
+		assertFalse(iter.hasNext());
+
+		// another regular sequence
+		iter.reset();
+		assertTrue(iter.hasNext());
+		iter.fwd();
+		assertArrayEquals(new long[] { 7 }, iter.get());
+		assertTrue(iter.hasNext());
+		iter.fwd();
+		assertArrayEquals(new long[] { 8 }, iter.get());
+		assertTrue(iter.hasNext());
+		iter.fwd();
+		assertArrayEquals(new long[] { 9 }, iter.get());
+		assertTrue(iter.hasNext());
+		iter.fwd();
+		assertArrayEquals(new long[] { 10 }, iter.get());
+		assertFalse(iter.hasNext());
+
+		// irregular sequences
+		iter.reset();
+		iter.next();
+		assertArrayEquals(new long[] { 7 }, iter.get());
+		iter.fwd();
+		assertArrayEquals(new long[] { 8 }, iter.get());
+		iter.next();
+		assertArrayEquals(new long[] { 9 }, iter.get());
+		iter.fwd();
+		assertArrayEquals(new long[] { 10 }, iter.get());
+		assertFalse(iter.hasNext());
+		assertArrayEquals(new long[] { 10 }, iter.get());
 	}
-	
-	@Override
-	public boolean isTrue(INPUT input) {
-		f1.compute(input, f1Val);
-		return relation.holds(f1Val);
-	}
-	
-	@Override
-	public UnaryCondition<INPUT, T> copy() {
-		return new UnaryCondition<INPUT, T>(f1.copy(), relation.copy());
-	}
+
 }
