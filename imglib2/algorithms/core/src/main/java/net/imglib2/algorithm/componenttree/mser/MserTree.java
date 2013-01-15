@@ -9,13 +9,13 @@
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * 
+ *
  * 1. Redistributions of source code must retain the above copyright notice,
  *    this list of conditions and the following disclaimer.
  * 2. Redistributions in binary form must reproduce the above copyright notice,
  *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -27,7 +27,7 @@
  * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are
  * those of the authors and should not be interpreted as representing official
  * policies, either expressed or implied, of any organization.
@@ -45,6 +45,8 @@ import net.imglib2.RandomAccess;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.algorithm.componenttree.Component;
 import net.imglib2.algorithm.componenttree.ComponentTree;
+import net.imglib2.algorithm.componenttree.ComponentTreeAlgorithm;
+import net.imglib2.algorithm.componenttree.ComponentTreeNode;
 import net.imglib2.algorithm.componenttree.pixellist.PixelList;
 import net.imglib2.algorithm.componenttree.pixellist.PixelListComponent;
 import net.imglib2.img.ImgFactory;
@@ -58,7 +60,7 @@ import net.imglib2.type.numeric.integer.LongType;
  * MSER tree of an image stored as a tree of {@link PixelListComponent}s. This
  * class is used both to represent and build the tree. For building the tree
  * {@link Component.Handler} is implemented to gather
- * {@link MserComponentIntermediate} emitted by {@link ComponentTree}.
+ * {@link MserComponentIntermediate} emitted by {@link ComponentTreeAlgorithm}.
  *
  * <p>
  * Maximally Stable Extremal Regions (MSER) are selected from the component tree
@@ -95,7 +97,7 @@ import net.imglib2.type.numeric.integer.LongType;
  *
  * @author Tobias Pietzsch
  */
-public final class MserTree< T extends Type< T > > implements Component.Handler< MserComponentIntermediate< T > >, Iterable< Mser< T > >
+public final class MserTree< T extends Type< T > > implements ComponentTree< T >, Component.Handler< MserComponentIntermediate< T > >, Iterable< ComponentTreeNode< T > >
 {
 	/**
 	 * Build a MSER tree from an input image. Calls
@@ -120,7 +122,7 @@ public final class MserTree< T extends Type< T > > implements Component.Handler<
 	 *            bright to dark (false)
 	 * @return MSER tree of the image.
 	 */
-	public static < T extends RealType< T > > MserTree< T > buildMserTree( final RandomAccessibleInterval< T > input, final double delta, final long minSize, final long maxSize, final double maxVar, final double minDiversity, boolean darkToBright )
+	public static < T extends RealType< T > > MserTree< T > buildMserTree( final RandomAccessibleInterval< T > input, final double delta, final long minSize, final long maxSize, final double maxVar, final double minDiversity, final boolean darkToBright )
 	{
 		return buildMserTree( input, MserTree.getDeltaVariable( input, delta ), minSize, maxSize, maxVar, minDiversity, darkToBright );
 	}
@@ -148,14 +150,14 @@ public final class MserTree< T extends Type< T > > implements Component.Handler<
 	 *            bright to dark (false)
 	 * @return MSER tree of the image.
 	 */
-	public static < T extends RealType< T > > MserTree< T > buildMserTree( final RandomAccessibleInterval< T > input, final T delta, final long minSize, final long maxSize, final double maxVar, final double minDiversity, boolean darkToBright )
+	public static < T extends RealType< T > > MserTree< T > buildMserTree( final RandomAccessibleInterval< T > input, final T delta, final long minSize, final long maxSize, final double maxVar, final double minDiversity, final boolean darkToBright )
 	{
 		final int numDimensions = input.numDimensions();
 		long size = 1;
 		for ( int d = 0; d < numDimensions; ++d )
 			size *= input.dimension( d );
 		if( size > Integer.MAX_VALUE ) {
-			int cellSize = ( int ) Math.pow( Integer.MAX_VALUE / new LongType().getEntitiesPerPixel(), 1.0 / numDimensions );
+			final int cellSize = ( int ) Math.pow( Integer.MAX_VALUE / new LongType().getEntitiesPerPixel(), 1.0 / numDimensions );
 			return buildMserTree( input, delta, minSize, maxSize, maxVar, minDiversity, new CellImgFactory< LongType >( cellSize ), darkToBright );
 		} else
 			return buildMserTree( input, delta, minSize, maxSize, maxVar, minDiversity, new ArrayImgFactory< LongType >(), darkToBright );
@@ -184,15 +186,15 @@ public final class MserTree< T extends Type< T > > implements Component.Handler<
 	 *            bright to dark (false)
 	 * @return MSER tree of the image.
 	 */
-	public static < T extends RealType< T > > MserTree< T > buildMserTree( final RandomAccessibleInterval< T > input, final T delta, final long minSize, final long maxSize, final double maxVar, final double minDiversity, final ImgFactory< LongType > imgFactory, boolean darkToBright )
+	public static < T extends RealType< T > > MserTree< T > buildMserTree( final RandomAccessibleInterval< T > input, final T delta, final long minSize, final long maxSize, final double maxVar, final double minDiversity, final ImgFactory< LongType > imgFactory, final boolean darkToBright )
 	{
 		final T max = delta.createVariable();
 		max.setReal( darkToBright ? delta.getMaxValue() : delta.getMinValue() );
 		final MserComponentGenerator< T > generator = new MserComponentGenerator< T >( max, input, imgFactory );
-		final Comparator< T > comparator = darkToBright ? new ComponentTree.DarkToBright< T >() : new ComponentTree.BrightToDark< T >();
-		final ComputeDelta< T > computeDelta = darkToBright ? new ComputeDeltaDarkToBright< T >( delta ) : new ComputeDeltaBrightToDark< T >( delta ); 
+		final Comparator< T > comparator = darkToBright ? new ComponentTreeAlgorithm.DarkToBright< T >() : new ComponentTreeAlgorithm.BrightToDark< T >();
+		final ComputeDelta< T > computeDelta = darkToBright ? new ComputeDeltaDarkToBright< T >( delta ) : new ComputeDeltaBrightToDark< T >( delta );
 		final MserTree< T > tree = new MserTree< T >( comparator, computeDelta, minSize, maxSize, maxVar, minDiversity );
-		ComponentTree.buildComponentTree( input, generator, tree, comparator );
+		ComponentTreeAlgorithm.buildComponentTree( input, generator, tree, comparator );
 		tree.pruneDuplicates();
 		return tree;
 	}
@@ -229,7 +231,7 @@ public final class MserTree< T extends Type< T > > implements Component.Handler<
 		for ( int d = 0; d < numDimensions; ++d )
 			size *= input.dimension( d );
 		if( size > Integer.MAX_VALUE ) {
-			int cellSize = ( int ) Math.pow( Integer.MAX_VALUE / new LongType().getEntitiesPerPixel(), 1.0 / numDimensions );
+			final int cellSize = ( int ) Math.pow( Integer.MAX_VALUE / new LongType().getEntitiesPerPixel(), 1.0 / numDimensions );
 			return buildMserTree( input, computeDelta, minSize, maxSize, maxVar, minDiversity, new CellImgFactory< LongType >( cellSize ), maxValue, comparator );
 		} else
 			return buildMserTree( input, computeDelta, minSize, maxSize, maxVar, minDiversity, new ArrayImgFactory< LongType >(), maxValue, comparator );
@@ -264,7 +266,7 @@ public final class MserTree< T extends Type< T > > implements Component.Handler<
 	{
 		final MserComponentGenerator< T > generator = new MserComponentGenerator< T >( maxValue, input, imgFactory );
 		final MserTree< T > tree = new MserTree< T >( comparator, computeDelta, minSize, maxSize, maxVar, minDiversity );
-		ComponentTree.buildComponentTree( input, generator, tree, comparator );
+		ComponentTreeAlgorithm.buildComponentTree( input, generator, tree, comparator );
 		tree.pruneDuplicates();
 		return tree;
 	}
@@ -273,18 +275,18 @@ public final class MserTree< T extends Type< T > > implements Component.Handler<
 	 * Create a variable of type T with value delta by copying
 	 * and setting a value from the input {@link RandomAccessibleInterval}.
 	 */
-	private static < T extends RealType< T > > T getDeltaVariable( final RandomAccessibleInterval< T > input, double delta )
+	private static < T extends RealType< T > > T getDeltaVariable( final RandomAccessibleInterval< T > input, final double delta )
 	{
-		RandomAccess< T > a = input.randomAccess();
+		final RandomAccess< T > a = input.randomAccess();
 		input.min( a );
-		T deltaT = a.get().createVariable();
+		final T deltaT = a.get().createVariable();
 		deltaT.setReal( delta );
 		return deltaT;
 	}
 
-	private final HashSet< Mser< T > > roots;
+	private final HashSet< ComponentTreeNode< T > > roots;
 
-	private final ArrayList< Mser< T > > nodes;
+	private final ArrayList< ComponentTreeNode< T > > nodes;
 
 	private final Comparator< T > comparator;
 
@@ -309,7 +311,7 @@ public final class MserTree< T extends Type< T > > implements Component.Handler<
 	 * Minimal diversity of adjacent accepted MSER.
 	 */
 	private final double minDiversity;
-	
+
 	/**
 	 * The number of minima found {@see #foundNewMinimum(MserEvaluationNode)}
 	 * since the last {@link #pruneDuplicates()}.
@@ -320,8 +322,8 @@ public final class MserTree< T extends Type< T > > implements Component.Handler<
 
 	private MserTree( final Comparator< T > comparator, final ComputeDelta< T > delta, final long minSize, final long maxSize, final double maxVar, final double minDiversity )
 	{
-		roots = new HashSet< Mser< T > >();
-		nodes = new ArrayList< Mser< T > >();
+		roots = new HashSet< ComponentTreeNode< T > >();
+		nodes = new ArrayList< ComponentTreeNode< T > >();
 		this.comparator = comparator;
 		this.delta = delta;
 		this.minSize = minSize;
@@ -339,37 +341,37 @@ public final class MserTree< T extends Type< T > > implements Component.Handler<
 	private void pruneDuplicates()
 	{
 		nodes.clear();
-		for ( Mser< T > mser : roots )
-			pruneChildren ( mser );
+		for ( final ComponentTreeNode< T > node : roots )
+			pruneChildren ( node );
 		nodes.addAll( roots );
 	}
 
-	private void pruneChildren( Mser< T > mser )
+	private void pruneChildren( final ComponentTreeNode< T > node )
 	{
-		final ArrayList< Mser< T > > validChildren = new ArrayList< Mser< T > >();
-		for ( int i = 0; i < mser.children.size(); ++i )
+		final ArrayList< ComponentTreeNode< T > > validChildren = new ArrayList< ComponentTreeNode< T > >();
+		for ( int i = 0; i < node.getChildren().size(); ++i )
 		{
-			Mser< T > m = mser.children.get( i );
-			double div = ( mser.size() - m.size() ) / (double) mser.size();
+			final ComponentTreeNode< T > n = node.getChildren().get( i );
+			final double div = ( node.size() - n.size() ) / (double) node.size();
 			if ( div > minDiversity )
 			{
-				validChildren.add( m );
-				pruneChildren( m );
+				validChildren.add( n );
+				pruneChildren( n );
 			}
 			else
 			{
-				mser.children.addAll( m.children );
-				for ( Mser< T > m2 : m.children )
-					m2.parent = mser;
+				node.getChildren().addAll( n.getChildren() );
+				for ( final ComponentTreeNode< T > n2 : n.getChildren() )
+					n2.setParent( node );
 			}
 		}
-		mser.children.clear();
-		mser.children.addAll( validChildren );
+		node.getChildren().clear();
+		node.getChildren().addAll( validChildren );
 		nodes.addAll( validChildren );
 	}
 
 	@Override
-	public void emit( MserComponentIntermediate< T > component )
+	public void emit( final MserComponentIntermediate< T > component )
 	{
 		new MserEvaluationNode< T >( component, comparator, delta, this );
 		component.children.clear();
@@ -382,18 +384,18 @@ public final class MserTree< T extends Type< T > > implements Component.Handler<
 	 * @param node
 	 *            MSER candidate.
 	 */
-	void foundNewMinimum( MserEvaluationNode< T > node )
+	void foundNewMinimum( final MserEvaluationNode< T > node )
 	{
 		if ( node.size >= minSize && node.size <= maxSize && node.score <= maxVar )
 		{
-			Mser< T > mser = new Mser< T >( node );
-			for ( Mser< T > m : node.mserThisOrChildren )
+			final Mser< T > mser = new Mser< T >( node );
+			for ( final Mser< T > m : node.mserThisOrChildren )
 				mser.children.add( m );
 			node.mserThisOrChildren.clear();
 			node.mserThisOrChildren.add( mser );
-			
-			for ( Mser< T > m : mser.children )
-				roots.remove( m );
+
+			for ( final ComponentTreeNode< T > n : mser.getChildren() )
+				roots.remove( n );
 			roots.add( mser );
 			nodes.add( mser );
 			if ( ++minimaFoundSinceLastPrune == pruneAfterNMinima )
@@ -420,7 +422,7 @@ public final class MserTree< T extends Type< T > > implements Component.Handler<
 	 * @return iterator over all MSERss in the tree.
 	 */
 	@Override
-	public Iterator< Mser< T > > iterator()
+	public Iterator< ComponentTreeNode< T > > iterator()
 	{
 		return nodes.iterator();
 	}
@@ -430,7 +432,8 @@ public final class MserTree< T extends Type< T > > implements Component.Handler<
 	 *
 	 * @return set of roots.
 	 */
-	public HashSet< Mser< T > > roots()
+	@Override
+	public HashSet< ComponentTreeNode< T > > roots()
 	{
 		return roots;
 	}

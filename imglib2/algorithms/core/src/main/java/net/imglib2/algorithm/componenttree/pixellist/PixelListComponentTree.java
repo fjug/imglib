@@ -9,13 +9,13 @@
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * 
+ *
  * 1. Redistributions of source code must retain the above copyright notice,
  *    this list of conditions and the following disclaimer.
  * 2. Redistributions in binary form must reproduce the above copyright notice,
  *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -27,7 +27,7 @@
  * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are
  * those of the authors and should not be interpreted as representing official
  * policies, either expressed or implied, of any organization.
@@ -38,11 +38,15 @@ package net.imglib2.algorithm.componenttree.pixellist;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Set;
 
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.algorithm.componenttree.Component;
 import net.imglib2.algorithm.componenttree.ComponentTree;
+import net.imglib2.algorithm.componenttree.ComponentTreeAlgorithm;
+import net.imglib2.algorithm.componenttree.ComponentTreeNode;
 import net.imglib2.img.ImgFactory;
 import net.imglib2.img.array.ArrayImgFactory;
 import net.imglib2.img.cell.CellImgFactory;
@@ -54,7 +58,7 @@ import net.imglib2.type.numeric.integer.LongType;
  * Component tree of an image stored as a tree of {@link PixelListComponent}s.
  * This class is used both to represent and build the tree.
  * For building the tree {@link Component.Handler} is implemented to gather
- * {@link PixelListComponentIntermediate} emitted by {@link ComponentTree}.
+ * {@link PixelListComponentIntermediate} emitted by {@link ComponentTreeAlgorithm}.
  *
  * <p>
  * <strong>TODO</strong> Add support for non-zero-min RandomAccessibleIntervals.
@@ -66,7 +70,7 @@ import net.imglib2.type.numeric.integer.LongType;
  *
  * @author Tobias Pietzsch
  */
-public final class PixelListComponentTree< T extends Type< T > > implements Component.Handler< PixelListComponentIntermediate< T > >, Iterable< PixelListComponent< T > >
+public final class PixelListComponentTree< T extends Type< T > > implements ComponentTree< T >, Component.Handler< PixelListComponentIntermediate< T > >, Iterable< PixelListComponent< T > >
 {
 	/**
 	 * Build a component tree from an input image. Calls
@@ -83,14 +87,14 @@ public final class PixelListComponentTree< T extends Type< T > > implements Comp
 	 *            bright to dark (false)
 	 * @return component tree of the image.
 	 */
-	public static < T extends RealType< T > > PixelListComponentTree< T > buildComponentTree( final RandomAccessibleInterval< T > input, final T type, boolean darkToBright )
+	public static < T extends RealType< T > > PixelListComponentTree< T > buildComponentTree( final RandomAccessibleInterval< T > input, final T type, final boolean darkToBright )
 	{
 		final int numDimensions = input.numDimensions();
 		long size = 1;
 		for ( int d = 0; d < numDimensions; ++d )
 			size *= input.dimension( d );
 		if( size > Integer.MAX_VALUE ) {
-			int cellSize = ( int ) Math.pow( Integer.MAX_VALUE / new LongType().getEntitiesPerPixel(), 1.0 / numDimensions );
+			final int cellSize = ( int ) Math.pow( Integer.MAX_VALUE / new LongType().getEntitiesPerPixel(), 1.0 / numDimensions );
 			return buildComponentTree( input, type, new CellImgFactory< LongType >( cellSize ), darkToBright );
 		} else
 			return buildComponentTree( input, type, new ArrayImgFactory< LongType >(), darkToBright );
@@ -111,13 +115,13 @@ public final class PixelListComponentTree< T extends Type< T > > implements Comp
 	 *            bright to dark (false)
 	 * @return component tree of the image.
 	 */
-	public static < T extends RealType< T > > PixelListComponentTree< T > buildComponentTree( final RandomAccessibleInterval< T > input, final T type, final ImgFactory< LongType > imgFactory, boolean darkToBright )
+	public static < T extends RealType< T > > PixelListComponentTree< T > buildComponentTree( final RandomAccessibleInterval< T > input, final T type, final ImgFactory< LongType > imgFactory, final boolean darkToBright )
 	{
-		T max = type.createVariable();
+		final T max = type.createVariable();
 		max.setReal( darkToBright ? type.getMaxValue() : type.getMinValue() );
 		final PixelListComponentGenerator< T > generator = new PixelListComponentGenerator< T >( max, input, imgFactory );
 		final PixelListComponentTree< T > tree = new PixelListComponentTree< T >();
-		ComponentTree.buildComponentTree( input, generator, tree, darkToBright );
+		ComponentTreeAlgorithm.buildComponentTree( input, generator, tree, darkToBright );
 		return tree;
 	}
 
@@ -143,7 +147,7 @@ public final class PixelListComponentTree< T extends Type< T > > implements Comp
 		for ( int d = 0; d < numDimensions; ++d )
 			size *= input.dimension( d );
 		if( size > Integer.MAX_VALUE ) {
-			int cellSize = ( int ) Math.pow( Integer.MAX_VALUE / new LongType().getEntitiesPerPixel(), 1.0 / numDimensions );
+			final int cellSize = ( int ) Math.pow( Integer.MAX_VALUE / new LongType().getEntitiesPerPixel(), 1.0 / numDimensions );
 			return buildComponentTree( input, maxValue, comparator, new CellImgFactory< LongType >( cellSize ) );
 		} else
 			return buildComponentTree( input, maxValue, comparator, new ArrayImgFactory< LongType >() );
@@ -168,7 +172,7 @@ public final class PixelListComponentTree< T extends Type< T > > implements Comp
 	{
 		final PixelListComponentGenerator< T > generator = new PixelListComponentGenerator< T >( maxValue, input, imgFactory );
 		final PixelListComponentTree< T > tree = new PixelListComponentTree< T >();
-		ComponentTree.buildComponentTree( input, generator, tree, comparator );
+		ComponentTreeAlgorithm.buildComponentTree( input, generator, tree, comparator );
 		return tree;
 	}
 
@@ -183,7 +187,7 @@ public final class PixelListComponentTree< T extends Type< T > > implements Comp
 	}
 
 	@Override
-	public void emit( PixelListComponentIntermediate< T > intermediate )
+	public void emit( final PixelListComponentIntermediate< T > intermediate )
 	{
 		final PixelListComponent< T > component = new PixelListComponent< T >( intermediate );
 		root = component;
@@ -209,5 +213,15 @@ public final class PixelListComponentTree< T extends Type< T > > implements Comp
 	public PixelListComponent< T > root()
 	{
 		return root;
+	}
+
+	/**
+	 * @see net.imglib2.algorithm.componenttree.ComponentTree#roots()
+	 */
+	@Override
+	public Set<ComponentTreeNode<T>> roots() {
+	    final Set<ComponentTreeNode<T>> ret = new HashSet<ComponentTreeNode<T>>();
+	    ret.add( root() );
+	    return ret;
 	}
 }

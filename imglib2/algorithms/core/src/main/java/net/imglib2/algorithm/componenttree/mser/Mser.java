@@ -9,13 +9,13 @@
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * 
+ *
  * 1. Redistributions of source code must retain the above copyright notice,
  *    this list of conditions and the following disclaimer.
  * 2. Redistributions in binary form must reproduce the above copyright notice,
  *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -27,7 +27,7 @@
  * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are
  * those of the authors and should not be interpreted as representing official
  * policies, either expressed or implied, of any organization.
@@ -40,6 +40,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 import net.imglib2.Localizable;
+import net.imglib2.algorithm.componenttree.ComponentTreeNode;
 import net.imglib2.algorithm.componenttree.pixellist.PixelList;
 import net.imglib2.type.Type;
 
@@ -55,17 +56,17 @@ import net.imglib2.type.Type;
  *
  * @author Tobias Pietzsch
  */
-public final class Mser< T extends Type< T > > implements Iterable< Localizable >
+public final class Mser< T extends Type< T > > implements ComponentTreeNode< T >
 {
 	/**
 	 * child nodes in the {@link MserTree}.
 	 */
-	final ArrayList< Mser< T > > children;
+	final ArrayList< ComponentTreeNode< T > > children;
 
 	/**
 	 * parent node in the {@link MserTree}.
 	 */
-	Mser< T > parent;
+	ComponentTreeNode<T> parent;
 
 	/**
 	 * Threshold value of the connected component.
@@ -92,9 +93,9 @@ public final class Mser< T extends Type< T > > implements Iterable< Localizable 
 	 */
 	private final double[] cov;
 
-	Mser( MserEvaluationNode< T > node )
+	Mser( final MserEvaluationNode< T > node )
 	{
-		children = new ArrayList< Mser< T > >();
+		children = new ArrayList< ComponentTreeNode< T > >();
 		parent = null;
 
 		value = node.value;
@@ -109,6 +110,7 @@ public final class Mser< T extends Type< T > > implements Iterable< Localizable 
 	 *
 	 * @return the image threshold that created the extremal region.
 	 */
+	@Override
 	public T value()
 	{
 		return value;
@@ -119,6 +121,7 @@ public final class Mser< T extends Type< T > > implements Iterable< Localizable 
 	 *
 	 * @return number of pixels in the extremal region.
 	 */
+	@Override
 	public long size()
 	{
 		return pixelList.size();
@@ -126,7 +129,7 @@ public final class Mser< T extends Type< T > > implements Iterable< Localizable 
 
 	/**
 	 * The MSER score is computed as |R_i - R_{i-\Delta}| / |R_i|.
-	 * 
+	 *
 	 * @return the MSER score.
 	 */
 	public double score()
@@ -137,7 +140,7 @@ public final class Mser< T extends Type< T > > implements Iterable< Localizable 
 	/**
 	 * Mean of the pixel positions in the region. This is a position vector
 	 * (x, y, z, ...)
-	 * 
+	 *
 	 * @return mean vector.
 	 */
 	public double[] mean()
@@ -149,7 +152,7 @@ public final class Mser< T extends Type< T > > implements Iterable< Localizable 
 	 * Covariance of the pixel positions in the region. This is a vector of
 	 * the independent elements of the covariance matrix (xx, xy, xz, ...,
 	 * yy, yz, ..., zz, ...)
-	 * 
+	 *
 	 * @return vector of covariance elements.
 	 */
 	public double[] cov()
@@ -174,7 +177,8 @@ public final class Mser< T extends Type< T > > implements Iterable< Localizable 
 	 *
 	 * @return the children of this node in the {@link MserTree}.
 	 */
-	public ArrayList< Mser< T > > getChildren()
+	@Override
+	public ArrayList< ComponentTreeNode< T > > getChildren()
 	{
 		return children;
 	}
@@ -184,8 +188,26 @@ public final class Mser< T extends Type< T > > implements Iterable< Localizable 
 	 *
 	 * @return the parent of this node in the {@link MserTree}.
 	 */
-	public Mser< T > getParent()
+	@Override
+	public ComponentTreeNode< T > getParent()
 	{
 		return parent;
+	}
+
+	/**
+	 * Adds a child to the node representation of this component.
+	 * @see ComponentTreeNode
+	 */
+	@Override
+	public void addChild(final ComponentTreeNode<T> child) {
+	    this.children.add( child );
+	}
+
+	/**
+	 * Sets the parent of the node representing this component.
+	 */
+	@Override
+	public void setParent(final ComponentTreeNode<T> parent) {
+	    this.parent = parent;
 	}
 }

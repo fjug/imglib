@@ -39,7 +39,7 @@ package net.imglib2.algorithm.componenttree;
 import net.imglib2.Localizable;
 
 /**
- * This interface is used by {@link ComponentTree} to build the component tree
+ * This interface is used by {@link ComponentTreeAlgorithm} to build the component tree
  * of an image. In the algorithm described by D. Nister and H. Stewenius in
  * "Linear Time Maximally Stable Extremal Regions" (ECCV 2008) a stack of
  * incomplete components is maintained while visiting the pixels of the input
@@ -50,7 +50,7 @@ import net.imglib2.Localizable;
  * component, to add pixels to the component, and to merge it with another
  * component.
  *
- * {@link ComponentTree} uses a {@link Component.Generator} to create new
+ * {@link ComponentTreeAlgorithm} uses a {@link Component.Generator} to create new
  * components and emits completed components to a {@link Component.Handler}.
  *
  * @param <T>
@@ -81,7 +81,7 @@ public interface Component< T >
 
 		/**
 		 * Create a component with a value (e.g., grey-level) greater than any
-		 * occurring in the input for the {@link ComponentTree}. This is used as a
+		 * occurring in the input for the {@link ComponentTreeAlgorithm}. This is used as a
 		 * terminator element on the component stack.
 		 * 
 		 * @return new component
@@ -90,7 +90,7 @@ public interface Component< T >
 	}
 
 	/**
-	 * Handle completed components that are output by {@link ComponentTree}.
+	 * Handle completed components that are output by {@link ComponentTreeAlgorithm}.
 	 * 
 	 * @param <C>
 	 *            component type.
@@ -98,8 +98,8 @@ public interface Component< T >
 	public interface Handler< C >
 	{
 		/**
-		 * {@link ComponentTree} calls this for every completed component. NOTE
-		 * THAT THE COMPONENT IS RE-USED BY {@link ComponentTree}! That is,
+		 * {@link ComponentTreeAlgorithm} calls this for every completed component. NOTE
+		 * THAT THE COMPONENT IS RE-USED BY {@link ComponentTreeAlgorithm}! That is,
 		 * after calling emit() new pixels may be added, etc. Do not store the
 		 * component object but rather copy the relevant data!
 		 *
