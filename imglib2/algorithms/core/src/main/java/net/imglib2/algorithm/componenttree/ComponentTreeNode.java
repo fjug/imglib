@@ -3,7 +3,7 @@
  */
 package net.imglib2.algorithm.componenttree;
 
-import java.util.ArrayList;
+import java.util.List;
 
 import net.imglib2.Localizable;
 import net.imglib2.type.Type;
@@ -43,25 +43,25 @@ public interface ComponentTreeNode< T extends Type< T >, N extends ComponentTree
      *
      * @return the parent of this node in the {@link ComponentTree}.
      */
-    public ComponentTreeNode< T > getParent();
-    /**
-     * Set the parent of this node in the {@link ComponentTree}.
-     *
-     * @param parent the parent to be set.
-     */
-    public void setParent( ComponentTreeNode< T > parent );
+    public N getParent();
+//    /**
+//     * Set the parent of this node in the {@link ComponentTree}.
+//     *
+//     * @param parent the parent to be set.
+//     */
+//    public void setParent( N parent );
 
     /**
      * Get the children of this node in the {@link ComponentTree}.
      *
      * @return the children of this node in the {@link ComponentTree}.
      */
-    public ArrayList< ComponentTreeNode< T > > getChildren();
-    /**
-     * Adds a child to this node in the {@link ComponentTree}.
-     *
-     * @param child the child to be added.
-     */
-    public void addChild( ComponentTreeNode< T > child );
+    public List< N > getChildren();
+//    /**
+//     * Adds a child to this node in the {@link ComponentTree}.
+//     *
+//     * @param child the child to be added.
+//     */
+//    public void addChild( N child );
 
 }

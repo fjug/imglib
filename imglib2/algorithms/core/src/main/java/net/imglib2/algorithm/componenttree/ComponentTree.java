@@ -16,13 +16,13 @@ import net.imglib2.type.Type;
  *
  * @author Florian Jug
  */
-public interface ComponentTree< T extends Type< T > > {
+public interface ComponentTree< T extends Type< T >, N extends ComponentTreeNode< T, N > > {
 
-	/**
-	 * Get the set of root nodes of this component tree (respectively forest...).
-	 *
-	 * @return set of roots.
-	 */
-	public Set< ComponentTreeNode< T > > roots();
+    /**
+     * Get the set of root nodes of this component tree (respectively forest...).
+     *
+     * @return set of roots.
+     */
+    public Set< N > roots();
 
 }

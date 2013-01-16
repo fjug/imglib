@@ -47,7 +47,7 @@ import net.imglib2.type.numeric.integer.LongType;
 
 /**
  * Implementation of {@link Component.Generator} for creating
- * {@link PixelListComponentIntermediate} components. According to the
+ * {@link PixelListComponent} components. According to the
  * dimensions of the input image it creates a {@link LongType} {@link Img} to
  * store the {@link PixelList} used in the components.
  *
@@ -56,7 +56,7 @@ import net.imglib2.type.numeric.integer.LongType;
  *
  * @author Tobias Pietzsch
  */
-final class PixelListComponentGenerator< T extends Type< T > > implements Component.Generator< T, PixelListComponentIntermediate< T > >
+final class PixelListComponentGenerator< T extends Type< T > > implements Component.Generator< T, PixelListComponent< T > >
 {
 	private final T maxValue;
 
@@ -92,14 +92,14 @@ final class PixelListComponentGenerator< T extends Type< T > > implements Compon
 	}
 
 	@Override
-	public PixelListComponentIntermediate< T > createComponent( T value )
+	public PixelListComponent< T > createComponent( T value )
 	{
-		return new PixelListComponentIntermediate< T >( value, this );
+		return new PixelListComponent< T >( value, this );
 	}
 
 	@Override
-	public PixelListComponentIntermediate< T > createMaxComponent()
+	public PixelListComponent< T > createMaxComponent()
 	{
-		return new PixelListComponentIntermediate< T >( maxValue, this );
+		return new PixelListComponent< T >( maxValue, this );
 	}
 }

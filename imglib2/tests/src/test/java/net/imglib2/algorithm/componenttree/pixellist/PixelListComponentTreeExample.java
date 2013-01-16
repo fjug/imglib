@@ -27,7 +27,7 @@ package net.imglib2.algorithm.componenttree.pixellist;
 
 import net.imglib2.Cursor;
 import net.imglib2.Localizable;
-import net.imglib2.algorithm.componenttree.pixellist.PixelListComponent;
+import net.imglib2.algorithm.componenttree.pixellist.PixelListComponentTreeNode;
 import net.imglib2.algorithm.componenttree.pixellist.PixelListComponentTree;
 import net.imglib2.img.Img;
 import net.imglib2.img.ImgFactory;
@@ -53,7 +53,7 @@ public class PixelListComponentTreeExample
 
 	public static void print( PixelListComponentTree< IntType > tree )
 	{
-		for ( PixelListComponent< IntType > component : tree )
+		for ( PixelListComponentTreeNode< IntType > component : tree )
 		{
 			System.out.println( component );
 

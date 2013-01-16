@@ -42,7 +42,7 @@ import net.imglib2.type.numeric.IntegerType;
 import net.imglib2.type.numeric.integer.UnsignedByteType;
 
 /**
- * Example of computing and visualizing the {@link MserTree} of an image.
+ * Example of computing and visualizing the {@link MserComponentTree} of an image.
  *
  *
  * @author Tobias Pietzsch
@@ -69,7 +69,7 @@ public class MserTreeExample< T extends IntegerType< T > >
 	 * Visualise MSER. Add a 3sigma ellipse overlay to {@link #imp} in the given
 	 * color. Add a slice to {@link #stack} showing binary mask of MSER region.
 	 */
-	public void visualise( final Mser< T > mser, final Color color )
+	public void visualise( final MserComponentTreeNode< T > mser, final Color color )
 	{
 		final ByteProcessor byteProcessor = new ByteProcessor( w, h );
 		final byte[] pixels = ( byte[] )byteProcessor.getPixels();
@@ -90,9 +90,9 @@ public class MserTreeExample< T extends IntegerType< T > >
 	/**
 	 * Visualize all MSER in a tree. {@see #visualise(Mser, Color)}.
 	 */
-	public void visualise( final MserTree< T > tree, final Color color )
+	public void visualise( final MserComponentTree< T > tree, final Color color )
 	{
-		for ( final Mser< T > mser : tree )
+		for ( final MserComponentTreeNode< T > mser : tree )
 			visualise( mser, color );
 	}
 
@@ -146,8 +146,8 @@ public class MserTreeExample< T extends IntegerType< T > >
 		final ImagePlus impImg = IJ.getImage();
 		final ImageStack stack = new ImageStack( (int) img.dimension( 0 ), (int) img.dimension( 1 ) );
 
-		final MserTree< UnsignedByteType > treeDarkToBright = MserTree.buildMserTree( img, new UnsignedByteType( delta ), minSize, maxSize, maxVar, minDiversity, true );
-		final MserTree< UnsignedByteType > treeBrightToDark = MserTree.buildMserTree( img, new UnsignedByteType( delta ), minSize, maxSize, maxVar, minDiversity, false );
+		final MserComponentTree< UnsignedByteType > treeDarkToBright = MserComponentTree.buildMserTree( img, new UnsignedByteType( delta ), minSize, maxSize, maxVar, minDiversity, true );
+		final MserComponentTree< UnsignedByteType > treeBrightToDark = MserComponentTree.buildMserTree( img, new UnsignedByteType( delta ), minSize, maxSize, maxVar, minDiversity, false );
 		final MserTreeExample< UnsignedByteType > vis = new MserTreeExample< UnsignedByteType >( impImg, stack );
 		vis.visualise( treeDarkToBright, Color.CYAN );
 		vis.visualise( treeBrightToDark, Color.MAGENTA );
