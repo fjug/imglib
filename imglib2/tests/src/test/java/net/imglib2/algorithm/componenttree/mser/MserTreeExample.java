@@ -79,7 +79,7 @@ public class MserTreeExample< T extends IntegerType< T > >
 			final int y = l.getIntPosition( 1 );
 			pixels[ y * w + x ] = (byte)(255 & 0xff);
 		}
-		final String label = "" + mser.value();
+		final String label = "" + mser.getValue();
 		stack.addSlice( label, byteProcessor );
 
 		final EllipseRoi ellipse = createEllipse( mser.mean(), mser.cov(), 3 );

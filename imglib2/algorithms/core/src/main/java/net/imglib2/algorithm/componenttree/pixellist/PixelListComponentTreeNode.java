@@ -44,7 +44,7 @@ import net.imglib2.algorithm.componenttree.ComponentTreeNode;
 import net.imglib2.type.Type;
 
 /**
- * A connected component of the image thresholded at {@link #value()}. The set
+ * A connected component of the image thresholded at {@link #getValue()}. The set
  * of pixels can be accessed by iterating ({@link #iterator()}) the component.
  *
  * This is a node in a {@link PixelListComponentTree}. The child and parent
@@ -100,7 +100,7 @@ public final class PixelListComponentTreeNode< T extends Type< T > > implements 
      * @return the image threshold that created the extremal region.
      */
     @Override
-    public T value()
+    public T getValue()
     {
 	return value;
     }
@@ -111,7 +111,7 @@ public final class PixelListComponentTreeNode< T extends Type< T > > implements 
      * @return number of pixels in the extremal region.
      */
     @Override
-    public long size()
+    public long getSize()
     {
 	return pixelList.size();
     }

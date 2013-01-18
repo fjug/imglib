@@ -46,7 +46,7 @@ import net.imglib2.algorithm.componenttree.pixellist.PixelList;
 import net.imglib2.type.Type;
 
 /**
- * A maximally stable extremal region (MSER) of the image thresholded at {@link #value()}. The set
+ * A maximally stable extremal region (MSER) of the image thresholded at {@link #getValue()}. The set
  * of pixels can be accessed by iterating ({@link #iterator()}) the component.
  *
  * This is a node in a {@link MserComponentTree}. The child and parent
@@ -112,7 +112,7 @@ public final class MserComponentTreeNode< T extends Type< T > > implements Compo
      * @return the image threshold that created the extremal region.
      */
     @Override
-    public T value()
+    public T getValue()
     {
 	return value;
     }
@@ -123,7 +123,7 @@ public final class MserComponentTreeNode< T extends Type< T > > implements Compo
      * @return number of pixels in the extremal region.
      */
     @Override
-    public long size()
+    public long getSize()
     {
 	return pixelList.size();
     }

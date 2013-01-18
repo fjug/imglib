@@ -29,14 +29,14 @@ public interface ComponentTreeNode< T extends Type< T >, N extends ComponentTree
      *
      * @return number of pixels in the extremal region.
      */
-    public long size();
+    public long getSize();
 
     /**
      * Get the image threshold that created the represented component.
      *
      * @return the image threshold that created the extremal region.
      */
-    public T value();
+    public T getValue();
 
     /**
      * Get the parent of this node in the {@link ComponentTree}.

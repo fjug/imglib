@@ -352,7 +352,7 @@ Component.Handler< MserComponent< T > >, Iterable< MserComponentTreeNode< T > >
 	for ( int i = 0; i < node.getChildren().size(); ++i )
 	{
 	    final MserComponentTreeNode< T > n = node.getChildren().get( i );
-	    final double div = ( node.size() - n.size() ) / (double) node.size();
+	    final double div = ( node.getSize() - n.getSize() ) / (double) node.getSize();
 	    if ( div > minDiversity )
 	    {
 		validChildren.add( n );
