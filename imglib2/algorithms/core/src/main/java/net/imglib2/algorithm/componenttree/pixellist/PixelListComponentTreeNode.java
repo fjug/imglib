@@ -57,110 +57,105 @@ import net.imglib2.type.Type;
  */
 public final class PixelListComponentTreeNode< T extends Type< T > > implements ComponentTreeNode< T, PixelListComponentTreeNode< T > >
 {
-    /**
-     * child nodes in the {@link PixelListComponentTree}.
-     */
-    private final ArrayList< PixelListComponentTreeNode< T > > children;
 
-    /**
-     * parent node in the {@link PixelListComponentTree}.
-     */
-    private PixelListComponentTreeNode<T> parent;
+	/**
+	 * child nodes in the {@link PixelListComponentTree}.
+	 */
+	private final ArrayList< PixelListComponentTreeNode< T > > children;
 
-    /**
-     * Threshold value of the connected component.
-     */
-    private final T value;
+	/**
+	 * parent node in the {@link PixelListComponentTree}.
+	 */
+	private PixelListComponentTreeNode< T > parent;
 
-    /**
-     * Pixels in the component.
-     */
-    private final PixelList pixelList;
+	/**
+	 * Threshold value of the connected component.
+	 */
+	private final T value;
 
-    PixelListComponentTreeNode( final PixelListComponent< T > intermediate )
-    {
-	children = new ArrayList< PixelListComponentTreeNode< T > >();
-	parent = null;
-	value = intermediate.getValue().copy();
-	pixelList = new PixelList( intermediate.pixelList );
-	if( intermediate.emittedComponent != null )
-	    addChild( intermediate.emittedComponent );
-	for ( final PixelListComponent< T > c : intermediate.children )
+	/**
+	 * Pixels in the component.
+	 */
+	private final PixelList pixelList;
+
+	PixelListComponentTreeNode( final PixelListComponent< T > intermediate )
 	{
-	    addChild( c.emittedComponent );
-	    c.emittedComponent.parent = this;
+		children = new ArrayList< PixelListComponentTreeNode< T > >();
+		parent = null;
+		value = intermediate.getValue().copy();
+		pixelList = new PixelList( intermediate.pixelList );
+		if ( intermediate.emittedComponent != null )
+			addChild( intermediate.emittedComponent );
+		for ( final PixelListComponent< T > c : intermediate.children ) {
+			addChild( c.emittedComponent );
+			c.emittedComponent.parent = this;
+		}
+		intermediate.emittedComponent = this;
+		intermediate.children.clear();
 	}
-	intermediate.emittedComponent = this;
-	intermediate.children.clear();
-    }
 
-    /**
-     * Get the image threshold that created the extremal region.
-     *
-     * @return the image threshold that created the extremal region.
-     */
-    @Override
-    public T getValue()
-    {
-	return value;
-    }
+	/**
+	 * Get the image threshold that created the extremal region.
+	 * 
+	 * @return the image threshold that created the extremal region.
+	 */
+	@Override
+	public T getValue() {
+		return value;
+	}
 
-    /**
-     * Get the number of pixels in the extremal region.
-     *
-     * @return number of pixels in the extremal region.
-     */
-    @Override
-    public long getSize()
-    {
-	return pixelList.size();
-    }
+	/**
+	 * Get the number of pixels in the extremal region.
+	 * 
+	 * @return number of pixels in the extremal region.
+	 */
+	@Override
+	public long getSize() {
+		return pixelList.size();
+	}
 
-    /**
-     * Get an iterator over the pixel locations ({@link Localizable}) in this
-     * connected component.
-     *
-     * @return iterator over locations.
-     */
-    @Override
-    public Iterator< Localizable > iterator()
-    {
-	return pixelList.iterator();
-    }
+	/**
+	 * Get an iterator over the pixel locations ({@link Localizable}) in this
+	 * connected component.
+	 * 
+	 * @return iterator over locations.
+	 */
+	@Override
+	public Iterator< Localizable > iterator() {
+		return pixelList.iterator();
+	}
 
-    /**
-     * Get the children of this node in the {@link PixelListComponentTree}.
-     *
-     * @return the children of this node in the {@link PixelListComponentTree}.
-     */
-    @Override
-    public ArrayList< PixelListComponentTreeNode< T > > getChildren()
-    {
-	return children;
-    }
+	/**
+	 * Get the children of this node in the {@link PixelListComponentTree}.
+	 * 
+	 * @return the children of this node in the {@link PixelListComponentTree}.
+	 */
+	@Override
+	public ArrayList< PixelListComponentTreeNode< T > > getChildren() {
+		return children;
+	}
 
-    /**
-     * Get the parent of this node in the {@link PixelListComponentTree}.
-     *
-     * @return the parent of this node in the {@link PixelListComponentTree}.
-     */
-    @Override
-    public PixelListComponentTreeNode< T > getParent()
-    {
-	return parent;
-    }
+	/**
+	 * Get the parent of this node in the {@link PixelListComponentTree}.
+	 * 
+	 * @return the parent of this node in the {@link PixelListComponentTree}.
+	 */
+	@Override
+	public PixelListComponentTreeNode< T > getParent() {
+		return parent;
+	}
 
-    /**
-     * Adds a child to the node representation of this component.
-     */
-    public void addChild(final PixelListComponentTreeNode<T> child) {
-	this.children.add( child );
-    }
+	/**
+	 * Adds a child to the node representation of this component.
+	 */
+	public void addChild( final PixelListComponentTreeNode< T > child ) {
+		this.children.add( child );
+	}
 
-    /**
-     * Sets the parent of the node representing this component.
-     */
-    public void setParent(final PixelListComponentTreeNode<T> parent) {
-	this.parent = parent;
-    }
+	/**
+	 * Sets the parent of the node representing this component.
+	 */
+	public void setParent( final PixelListComponentTreeNode< T > parent ) {
+		this.parent = parent;
+	}
 }

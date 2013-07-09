@@ -56,37 +56,37 @@ import net.imglib2.type.logic.BitType;
  * Build the component tree of an image. This is an implementation of the
  * algorithm described by D. Nister and H. Stewenius in
  * "Linear Time Maximally Stable Extremal Regions" (ECCV 2008).
- *
+ * 
  * The input to the algorithm is a RandomAccessibleInterval< T >. Further, a
  * Comparator<T> and a {@link Component.Generator} to instantiate new components
  * are required. Pixel locations are aggregated in {@link Component}s which are
  * passed to a {@link Component.Handler} whenever a connected component for a
  * specific threshold is completed.
- *
+ * 
  * Building up a tree structure out of the completed components should happen in
- * the {@link Component.Handler} implementation. See {@link PixelListComponentTree}
- * for an example.
- *
+ * the {@link Component.Handler} implementation. See
+ * {@link PixelListComponentTree} for an example.
+ * 
  * <p>
  * <strong>TODO</strong> Add support for non-zero-min RandomAccessibleIntervals.
  * (Currently, we assume that the input image is a <em>zero-min</em> interval.)
  * </p>
- *
+ * 
  * @param <T>
  *            value type of the input image.
  * @param <C>
  *            component type.
- *
+ * 
  * @author Tobias Pietzsch
  */
-public final class ComponentTreeAlgorithm< T extends Type< T >, C extends Component< T > >
-{
+public final class ComponentTreeAlgorithm< T extends Type< T >, C extends Component< T > > {
+
 	/**
 	 * Run the algorithm. Completed components are emitted to the
-	 * {@link Component.Handler} which is responsible for building up the
-	 * tree structure. An implementations of {@link Component.Handler} is
-	 * provided for example by {@link PixelListComponentTree}.
-	 *
+	 * {@link Component.Handler} which is responsible for building up the tree
+	 * structure. An implementations of {@link Component.Handler} is provided
+	 * for example by {@link PixelListComponentTree}.
+	 * 
 	 * @param input
 	 *            input image.
 	 * @param componentGenerator
@@ -96,8 +96,7 @@ public final class ComponentTreeAlgorithm< T extends Type< T >, C extends Compon
 	 * @param comparator
 	 *            determines ordering of threshold values.
 	 */
-	public static < T extends Type< T >, C extends Component< T > > void buildComponentTree( final RandomAccessibleInterval< T > input, final Component.Generator< T, C > componentGenerator, final Component.Handler< C > componentHandler, final Comparator< T > comparator )
-	{
+	public static < T extends Type< T >, C extends Component< T > > void buildComponentTree( final RandomAccessibleInterval< T > input, final Component.Generator< T, C > componentGenerator, final Component.Handler< C > componentHandler, final Comparator< T > comparator ) {
 		new ComponentTreeAlgorithm< T, C >( input, componentGenerator, componentHandler, comparator );
 	}
 
@@ -106,7 +105,7 @@ public final class ComponentTreeAlgorithm< T extends Type< T >, C extends Compon
 	 * {@link Component.Handler} which is responsible for building up the tree
 	 * structure. An implementations of {@link Component.Handler} is provided
 	 * for example by {@link PixelListComponentTree}.
-	 *
+	 * 
 	 * @param input
 	 *            input image of a comparable value type.
 	 * @param componentGenerator
@@ -122,31 +121,30 @@ public final class ComponentTreeAlgorithm< T extends Type< T >, C extends Compon
 	 *            {@link Component.Generator#createMaxComponent()} should
 	 *            provide a Integer.MIN_VALUE valued component.
 	 */
-	public static < T extends Type< T > & Comparable< T >, C extends Component< T > > void buildComponentTree( final RandomAccessibleInterval< T > input, final Component.Generator< T, C > componentGenerator, final Component.Handler< C > componentHandler, final boolean darkToBright )
-	{
+	public static < T extends Type< T > & Comparable< T >, C extends Component< T > > void buildComponentTree( final RandomAccessibleInterval< T > input, final Component.Generator< T, C > componentGenerator, final Component.Handler< C > componentHandler, final boolean darkToBright ) {
 		new ComponentTreeAlgorithm< T, C >( input, componentGenerator, componentHandler, darkToBright ? new DarkToBright< T >() : new BrightToDark< T >() );
 	}
 
 	/**
-	 * Default comparator for {@link Comparable} pixel values for dark-to-bright pass.
+	 * Default comparator for {@link Comparable} pixel values for dark-to-bright
+	 * pass.
 	 */
-	public static final class DarkToBright< T extends Comparable< T > > implements Comparator< T >
-	{
+	public static final class DarkToBright< T extends Comparable< T > > implements Comparator< T > {
+
 		@Override
-		public int compare( final T o1, final T o2 )
-		{
+		public int compare( final T o1, final T o2 ) {
 			return o1.compareTo( o2 );
 		}
 	}
 
 	/**
-	 * Default comparator for {@link Comparable} pixel values for bright-to-dark pass.
+	 * Default comparator for {@link Comparable} pixel values for bright-to-dark
+	 * pass.
 	 */
-	public static final class BrightToDark< T extends Comparable< T > > implements Comparator< T >
-	{
+	public static final class BrightToDark< T extends Comparable< T > > implements Comparator< T > {
+
 		@Override
-		public int compare( final T o1, final T o2 )
-		{
+		public int compare( final T o1, final T o2 ) {
 			return o2.compareTo( o1 );
 		}
 	}
@@ -154,8 +152,8 @@ public final class ComponentTreeAlgorithm< T extends Type< T >, C extends Compon
 	/**
 	 * Iterate pixel positions in 4-neighborhood.
 	 */
-	private static final class Neighborhood
-	{
+	private static final class Neighborhood {
+
 		/**
 		 * index of the next neighbor to visit. 0 is pixel at x-1, 1 is pixel at
 		 * x+1, 2 is pixel at y-1, 3 is pixel at y+1, and so on.
@@ -172,54 +170,46 @@ public final class ComponentTreeAlgorithm< T extends Type< T >, C extends Compon
 		 */
 		final long[] dimensions;
 
-		public Neighborhood( final long[] dim )
-		{
+		public Neighborhood( final long[] dim ) {
 			n = 0;
 			nBound = dim.length * 2;
 			dimensions = dim;
 		}
 
-		public int getNextNeighborIndex()
-		{
+		public int getNextNeighborIndex() {
 			return n;
 		}
 
-		public void setNextNeighborIndex( final int n )
-		{
+		public void setNextNeighborIndex( final int n ) {
 			this.n = n;
 		}
 
-		public void reset()
-		{
+		public void reset() {
 			n = 0;
 		}
 
-		public boolean hasNext()
-		{
+		public boolean hasNext() {
 			return n < nBound;
 		}
 
 		/**
 		 * Set neighbor to the next (according to
-		 * {@link ComponentTreeAlgorithm.Neighborhood#n}) neighbor position of current.
-		 * Assumes that prior to any call to next() neighbor was a the same
-		 * position as current, i.e. neighbor position is only modified
+		 * {@link ComponentTreeAlgorithm.Neighborhood#n}) neighbor position of
+		 * current. Assumes that prior to any call to next() neighbor was a the
+		 * same position as current, i.e. neighbor position is only modified
 		 * incrementally.
-		 *
+		 * 
 		 * @param current
 		 * @param neighbor
 		 * @return false if the neighbor position is out of bounds, true
 		 *         otherwise.
 		 */
-		public boolean next( final Localizable current, final Positionable neighbor, final Positionable neighbor2 )
-		{
+		public boolean next( final Localizable current, final Positionable neighbor, final Positionable neighbor2 ) {
 			final int d = n / 2;
-			final boolean bck = (n == 2*d); // n % 2 == 0
+			final boolean bck = ( n == 2 * d ); // n % 2 == 0
 			++n;
-			if ( bck )
-			{
-				if ( d > 0 )
-				{
+			if ( bck ) {
+				if ( d > 0 ) {
 					neighbor.setPosition( current.getLongPosition( d - 1 ), d - 1 );
 					neighbor2.setPosition( current.getLongPosition( d - 1 ), d - 1 );
 				}
@@ -227,9 +217,7 @@ public final class ComponentTreeAlgorithm< T extends Type< T >, C extends Compon
 				neighbor.setPosition( dpos, d );
 				neighbor2.setPosition( dpos, d );
 				return dpos >= 0;
-			}
-			else
-			{
+			} else {
 				final long dpos = current.getLongPosition( d ) + 1;
 				neighbor.setPosition( dpos, d );
 				neighbor2.setPosition( dpos, d );
@@ -242,45 +230,39 @@ public final class ComponentTreeAlgorithm< T extends Type< T >, C extends Compon
 	 * A pixel position on the heap of boundary pixels to be processed next. The
 	 * heap is sorted by pixel values.
 	 */
-	private final class BoundaryPixel extends Point implements Comparable< BoundaryPixel >
-	{
+	private final class BoundaryPixel extends Point implements Comparable< BoundaryPixel > {
+
 		private final T value;
 
 		// TODO: this should be some kind of iterator over the neighborhood
 		private int nextNeighborIndex;
 
-		public BoundaryPixel( final Localizable position, final T value, final int nextNeighborIndex )
-		{
+		public BoundaryPixel( final Localizable position, final T value, final int nextNeighborIndex ) {
 			super( position );
 			this.nextNeighborIndex = nextNeighborIndex;
 			this.value = value.copy();
 		}
 
-		public int getNextNeighborIndex()
-		{
+		public int getNextNeighborIndex() {
 			return nextNeighborIndex;
 		}
 
-		public T get()
-		{
+		public T get() {
 			return value;
 		}
 
 		@Override
-		public int compareTo( final BoundaryPixel o )
-		{
+		public int compareTo( final BoundaryPixel o ) {
 			return comparator.compare( value, o.value );
 		}
 	}
 
 	private final ArrayDeque< BoundaryPixel > reusableBoundaryPixels;
 
-	private BoundaryPixel createBoundaryPixel( final Localizable position, final T value, final int nextNeighborIndex )
-	{
+	private BoundaryPixel createBoundaryPixel( final Localizable position, final T value, final int nextNeighborIndex ) {
 		if ( reusableBoundaryPixels.isEmpty() )
 			return new BoundaryPixel( position, value, nextNeighborIndex );
-		else
-		{
+		else {
 			final BoundaryPixel p = reusableBoundaryPixels.pop();
 			p.setPosition( position );
 			p.value.set( value );
@@ -289,8 +271,7 @@ public final class ComponentTreeAlgorithm< T extends Type< T >, C extends Compon
 		}
 	}
 
-	private void freeBoundaryPixel( final BoundaryPixel p )
-	{
+	private void freeBoundaryPixel( final BoundaryPixel p ) {
 		reusableBoundaryPixels.push( p );
 	}
 
@@ -313,7 +294,7 @@ public final class ComponentTreeAlgorithm< T extends Type< T >, C extends Compon
 	/**
 	 * Set up data structures and run the algorithm. Completed components are
 	 * emitted to the provided {@link Component.Handler}.
-	 *
+	 * 
 	 * @param input
 	 *            input image.
 	 * @param componentGenerator
@@ -323,8 +304,7 @@ public final class ComponentTreeAlgorithm< T extends Type< T >, C extends Compon
 	 * @param comparator
 	 *            determines ordering of threshold values.
 	 */
-	private ComponentTreeAlgorithm( final RandomAccessibleInterval< T > input, final Component.Generator< T, C > componentGenerator, final Component.Handler< C > componentOutput, final Comparator< T > comparator )
-	{
+	private ComponentTreeAlgorithm( final RandomAccessibleInterval< T > input, final Component.Generator< T, C > componentGenerator, final Component.Handler< C > componentOutput, final Comparator< T > comparator ) {
 		reusableBoundaryPixels = new ArrayDeque< BoundaryPixel >();
 		this.componentGenerator = componentGenerator;
 		this.componentOutput = componentOutput;
@@ -351,12 +331,11 @@ public final class ComponentTreeAlgorithm< T extends Type< T >, C extends Compon
 	/**
 	 * Main loop of the algorithm. This follows exactly along steps of the
 	 * algorithm as described in the paper.
-	 *
+	 * 
 	 * @param input
 	 *            the input image.
 	 */
-	private void run( final RandomAccessibleInterval< T > input )
-	{
+	private void run( final RandomAccessibleInterval< T > input ) {
 		final RandomAccess< T > current = input.randomAccess();
 		final RandomAccess< T > neighbor = input.randomAccess();
 		input.min( current );
@@ -376,27 +355,23 @@ public final class ComponentTreeAlgorithm< T extends Type< T >, C extends Compon
 		componentStack.push( componentGenerator.createComponent( currentLevel ) );
 
 		// step 4
-		while ( true )
-		{
-			while ( neighborhood.hasNext() )
-			{
+		while ( true ) {
+			while ( neighborhood.hasNext() ) {
 				if ( !neighborhood.next( current, neighbor, visitedRandomAccess ) )
 					continue;
-				if ( !visitedRandomAccess.get().get() )
-				{
+				if ( !visitedRandomAccess.get().get() ) {
 					// actually we could
-					//   visit( neighbor );
+					// visit( neighbor );
 					// here.
-					// however, because wasVisited() already set the visitedRandomAccess to the correct position, this is faster:
+					// however, because wasVisited() already set the
+					// visitedRandomAccess to the correct position, this is
+					// faster:
 					visitedRandomAccess.get().set( true );
 
 					neighborLevel.set( neighbor.get() );
-					if ( comparator.compare( neighborLevel, currentLevel ) >= 0 )
-					{
+					if ( comparator.compare( neighborLevel, currentLevel ) >= 0 ) {
 						boundaryPixels.add( createBoundaryPixel( neighbor, neighborLevel, 0 ) );
-					}
-					else
-					{
+					} else {
 						boundaryPixels.add( createBoundaryPixel( current, currentLevel, neighborhood.getNextNeighborIndex() ) );
 						current.setPosition( neighbor );
 						currentLevel.set( neighborLevel );
@@ -413,15 +388,13 @@ public final class ComponentTreeAlgorithm< T extends Type< T >, C extends Compon
 			component.addPosition( current );
 
 			// step 6
-			if ( boundaryPixels.isEmpty() )
-			{
+			if ( boundaryPixels.isEmpty() ) {
 				processStack( currentLevel );
 				return;
 			}
 
 			final BoundaryPixel p = boundaryPixels.poll();
-			if ( comparator.compare( p.get(), currentLevel ) != 0 )
-			{
+			if ( comparator.compare( p.get(), currentLevel ) != 0 ) {
 				// step 7
 				processStack( p.get() );
 			}
@@ -436,37 +409,29 @@ public final class ComponentTreeAlgorithm< T extends Type< T >, C extends Compon
 
 	/**
 	 * This is called whenever the current value is raised.
-	 *
+	 * 
 	 * @param value
 	 */
-	private void processStack( final T value )
-	{
-		while ( true )
-		{
+	private void processStack( final T value ) {
+		while ( true ) {
 			// process component on top of stack
 			final C component = componentStack.pop();
 			componentOutput.emit( component );
 
 			// get level of second component on stack
 			final C secondComponent = componentStack.peek();
-			try
-			{
+			try {
 				final int c = comparator.compare( value, secondComponent.getValue() );
-				if ( c < 0 )
-				{
+				if ( c < 0 ) {
 					component.setValue( value );
 					componentStack.push( component );
-				}
-				else
-				{
+				} else {
 					secondComponent.merge( component );
-					if ( c > 0 )
-						continue;
+					if ( c > 0 ) continue;
 				}
 				return;
 			}
-			catch ( final NullPointerException e )
-			{
+			catch ( final NullPointerException e ) {
 				componentStack.push( component );
 				return;
 			}
