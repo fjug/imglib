@@ -2,11 +2,10 @@
  * #%L
  * ImgLib2: a general-purpose, multidimensional image processing library.
  * %%
- * Copyright (C) 2009 - 2013 Stephan Preibisch, Tobias Pietzsch, Barry DeZonia,
- * Stephan Saalfeld, Albert Cardona, Curtis Rueden, Christian Dietz, Jean-Yves
- * Tinevez, Johannes Schindelin, Lee Kamentsky, Larry Lindsey, Grant Harris,
- * Mark Hiner, Aivar Grislis, Martin Horn, Nick Perry, Michael Zinsmaier,
- * Steffen Jaensch, Jan Funke, Mark Longair, and Dimiter Prodanov.
+ * Copyright (C) 2009 - 2012 Stephan Preibisch, Stephan Saalfeld, Tobias
+ * Pietzsch, Albert Cardona, Barry DeZonia, Curtis Rueden, Lee Kamentsky, Larry
+ * Lindsey, Johannes Schindelin, Christian Dietz, Grant Harris, Jean-Yves
+ * Tinevez, Steffen Jaensch, Mark Longair, Nick Perry, and Jan Funke.
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -38,35 +37,22 @@
 package net.imglib2.algorithm.componenttree.pixellist;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 
 import net.imglib2.Localizable;
+import net.imglib2.algorithm.componenttree.Component;
 import net.imglib2.type.Type;
 
 /**
- * A connected component of the image thresholded at {@link #value()}. The set
- * of pixels can be accessed by iterating ({@link #iterator()}) the component.
- *
- * This is a node in a {@link PixelListComponentTree}. The child and parent
- * nodes can be accessed by {@link #getChildren()} and {@link #getParent()}.
+ * Implementation of {@link Component} that stores a list of associated pixels
+ * in a {@link PixelList}.
  *
  * @param <T>
  *            value type of the input image.
  *
  * @author Tobias Pietzsch
  */
-public final class PixelListComponent< T extends Type< T > > implements Iterable< Localizable >
+final class PixelListComponent< T extends Type< T > > implements Component< T >
 {
-	/**
-	 * child nodes in the {@link PixelListComponentTree}.
-	 */
-	private final ArrayList< PixelListComponent< T > > children;
-
-	/**
-	 * parent node in the {@link PixelListComponentTree}.
-	 */
-	private PixelListComponent< T > parent;
-
 	/**
 	 * Threshold value of the connected component.
 	 */
@@ -75,74 +61,80 @@ public final class PixelListComponent< T extends Type< T > > implements Iterable
 	/**
 	 * Pixels in the component.
 	 */
-	private final PixelList pixelList;
-
-	PixelListComponent( final PixelListComponentIntermediate< T > intermediate )
-	{
-		children = new ArrayList< PixelListComponent< T > >();
-		parent = null;
-		value = intermediate.getValue().copy();
-		pixelList = new PixelList( intermediate.pixelList );
-		if( intermediate.emittedComponent != null )
-			children.add( intermediate.emittedComponent );
-		for ( final PixelListComponentIntermediate< T > c : intermediate.children )
-		{
-			children.add( c.emittedComponent );
-			c.emittedComponent.parent = this;
-		}
-		intermediate.emittedComponent = this;
-		intermediate.children.clear();
-	}
+	final PixelList pixelList;
 
 	/**
-	 * Get the image threshold that created the extremal region.
-	 *
-	 * @return the image threshold that created the extremal region.
+	 * A list of PixelListComponentIntermediate merged into this one since it
+	 * was last emitted. (For building up component tree.)
 	 */
-	public T value()
+	final ArrayList< PixelListComponent< T > > children;
+
+	/**
+	 * The PixelListComponent assigned to this PixelListComponentIntermediate
+	 * when it was last emitted. (For building up component tree.)
+	 */
+	PixelListComponentTreeNode< T > emittedComponent;
+
+	/**
+	 * Create new empty component.
+	 *
+	 * @param value
+	 *            (initial) threshold value {@see #getValue()}.
+	 * @param generator
+	 *            the {@link PixelListComponentGenerator#linkedList} is used to
+	 *            store the {@link #pixelList}.
+	 */
+	PixelListComponent( final T value, final PixelListComponentGenerator< T > generator )
+	{
+		pixelList = new PixelList( generator.linkedList.randomAccess(), generator.dimensions );
+		this.value = value.copy();
+		children = new ArrayList< PixelListComponent< T > >();
+		emittedComponent = null;
+	}
+
+	@Override
+	public void addPosition( final Localizable position )
+	{
+		pixelList.addPosition( position );
+	}
+
+	@Override
+	public T getValue()
 	{
 		return value;
 	}
 
-	/**
-	 * Get the number of pixels in the extremal region.
-	 *
-	 * @return number of pixels in the extremal region.
-	 */
-	public long size()
-	{
-		return pixelList.size();
-	}
-
-	/**
-	 * Get an iterator over the pixel locations ({@link Localizable}) in this
-	 * connected component.
-	 *
-	 * @return iterator over locations.
-	 */
 	@Override
-	public Iterator< Localizable > iterator()
+	public void setValue( final T value )
 	{
-		return pixelList.iterator();
+		this.value.set( value );
 	}
 
-	/**
-	 * Get the children of this node in the {@link PixelListComponentTree}.
-	 *
-	 * @return the children of this node in the {@link PixelListComponentTree}.
-	 */
-	public ArrayList< PixelListComponent< T > > getChildren()
+	@Override
+	public void merge( final Component< T > component )
 	{
-		return children;
+		final PixelListComponent< T > c = (PixelListComponent< T > ) component;
+		pixelList.merge( c.pixelList );
+		children.add( c );
 	}
 
-	/**
-	 * Get the parent of this node in the {@link PixelListComponentTree}.
-	 *
-	 * @return the parent of this node in the {@link PixelListComponentTree}.
-	 */
-	public PixelListComponent< T > getParent()
+	@Override
+	public String toString()
 	{
-		return parent;
+		String s = "{" + value.toString() + " : ";
+		boolean first = true;
+		for ( Localizable l : pixelList )
+		{
+			if ( first )
+			{
+				first = false;
+			}
+			else
+			{
+				s += ", ";
+			}
+			s += l.toString();
+		}
+		return s + "}";
 	}
 }

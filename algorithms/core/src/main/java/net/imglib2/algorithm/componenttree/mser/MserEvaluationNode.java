@@ -2,11 +2,10 @@
  * #%L
  * ImgLib2: a general-purpose, multidimensional image processing library.
  * %%
- * Copyright (C) 2009 - 2013 Stephan Preibisch, Tobias Pietzsch, Barry DeZonia,
- * Stephan Saalfeld, Albert Cardona, Curtis Rueden, Christian Dietz, Jean-Yves
- * Tinevez, Johannes Schindelin, Lee Kamentsky, Larry Lindsey, Grant Harris,
- * Mark Hiner, Aivar Grislis, Martin Horn, Nick Perry, Michael Zinsmaier,
- * Steffen Jaensch, Jan Funke, Mark Longair, and Dimiter Prodanov.
+ * Copyright (C) 2009 - 2012 Stephan Preibisch, Stephan Saalfeld, Tobias
+ * Pietzsch, Albert Cardona, Barry DeZonia, Curtis Rueden, Lee Kamentsky, Larry
+ * Lindsey, Johannes Schindelin, Christian Dietz, Grant Harris, Jean-Yves
+ * Tinevez, Steffen Jaensch, Mark Longair, Nick Perry, and Jan Funke.
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -46,21 +45,21 @@ import net.imglib2.type.Type;
 /**
  * Store {@link PixelList}, mean, covariance, instability score, parent, and
  * children of a extremal region. A tree of {@link MserEvaluationNode} is built
- * from emitted {@link MserComponentIntermediate}. As soon as the parent of a
+ * from emitted {@link MserComponent}. As soon as the parent of a
  * node is available, it is checked whether the instability score is a local
  * minimum. In this case, it is passed to
- * {@link MserTree#foundNewMinimum(MserEvaluationNode)}, where a MSER is
+ * {@link MserComponentTree#foundNewMinimum(MserEvaluationNode)}, where a MSER is
  * created.
  *
  * We construct the component tree for generic types, which means that we cannot
  * raise the threshold values in steps of 1 (value type might be continuous or
  * non-numeric). To create a tree whose every branch covers a continuous range
- * of values, two nodes are created for every {@link MserComponentIntermediate}.
+ * of values, two nodes are created for every {@link MserComponent}.
  * These mark the range of values covered by that component. The first node is
  * called the <em>"direct"</em> or <em>"non-intermediate node"</em> and is
- * created, when the {@link MserComponentIntermediate} is emitted. It marks the
+ * created, when the {@link MserComponent} is emitted. It marks the
  * lower bound (inclusive) of the value range. When the parent of the
- * {@link MserComponentIntermediate} is emitted, the
+ * {@link MserComponent} is emitted, the
  * <em>"intermediate node"</em> is created which covers the same pixels as the
  * direct node but marks the upper bound (exclusive) of the value range.
  *
@@ -123,12 +122,12 @@ final class MserEvaluationNode< T extends Type< T > >
 	final double[] cov;
 
 	/**
-	 * {@link Mser}s associated to this region or its children. To build up the MSER
+	 * {@link MserComponentTreeNode}s associated to this region or its children. To build up the MSER
 	 * tree.
 	 */
-	final ArrayList< Mser< T > > mserThisOrChildren;
+	final ArrayList< MserComponentTreeNode< T > > mserThisOrChildren;
 
-	MserEvaluationNode( final MserComponentIntermediate< T > component, final Comparator< T > comparator, final ComputeDelta< T > delta, final MserTree< T > tree )
+	MserEvaluationNode( final MserComponent< T > component, final Comparator< T > comparator, final ComputeDelta< T > delta, final MserComponentTree< T > tree )
 	{
 		value = component.getValue().copy();
 		pixelList = new PixelList( component.pixelList );
@@ -147,7 +146,7 @@ final class MserEvaluationNode< T extends Type< T > >
 		}
 
 		MserEvaluationNode< T > historyWinner = node;
-		for ( MserComponentIntermediate< T > c : component.children )
+		for ( MserComponent< T > c : component.children )
 		{
 			// create intermediate MserEvaluationNode between child and this node.
 			node = new MserEvaluationNode< T >( c.getEvaluationNode(), value, comparator, delta );
@@ -185,7 +184,7 @@ final class MserEvaluationNode< T extends Type< T > >
 			mserThisOrChildren = children.get( 0 ).mserThisOrChildren;
 		else
 		{
-			mserThisOrChildren = new ArrayList< Mser< T > >();
+			mserThisOrChildren = new ArrayList< MserComponentTreeNode< T > >();
 			for ( MserEvaluationNode< T > a : children )
 				mserThisOrChildren.addAll( a.mserThisOrChildren );
 		}
@@ -262,7 +261,7 @@ final class MserEvaluationNode< T extends Type< T > >
 	 * called, when the mser score for the next component in the branch is
 	 * available.)
 	 */
-	private void evaluateLocalMinimum( final MserTree< T > tree, final ComputeDelta< T > delta, final Comparator< T > comparator )
+	private void evaluateLocalMinimum( final MserComponentTree< T > tree, final ComputeDelta< T > delta, final Comparator< T > comparator )
 	{
 		if ( isScoreValid )
 		{

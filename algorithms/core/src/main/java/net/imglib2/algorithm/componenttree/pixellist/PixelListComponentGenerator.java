@@ -2,11 +2,10 @@
  * #%L
  * ImgLib2: a general-purpose, multidimensional image processing library.
  * %%
- * Copyright (C) 2009 - 2013 Stephan Preibisch, Tobias Pietzsch, Barry DeZonia,
- * Stephan Saalfeld, Albert Cardona, Curtis Rueden, Christian Dietz, Jean-Yves
- * Tinevez, Johannes Schindelin, Lee Kamentsky, Larry Lindsey, Grant Harris,
- * Mark Hiner, Aivar Grislis, Martin Horn, Nick Perry, Michael Zinsmaier,
- * Steffen Jaensch, Jan Funke, Mark Longair, and Dimiter Prodanov.
+ * Copyright (C) 2009 - 2012 Stephan Preibisch, Stephan Saalfeld, Tobias
+ * Pietzsch, Albert Cardona, Barry DeZonia, Curtis Rueden, Lee Kamentsky, Larry
+ * Lindsey, Johannes Schindelin, Christian Dietz, Grant Harris, Jean-Yves
+ * Tinevez, Steffen Jaensch, Mark Longair, Nick Perry, and Jan Funke.
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -48,7 +47,7 @@ import net.imglib2.type.numeric.integer.LongType;
 
 /**
  * Implementation of {@link Component.Generator} for creating
- * {@link PixelListComponentIntermediate} components. According to the
+ * {@link PixelListComponent} components. According to the
  * dimensions of the input image it creates a {@link LongType} {@link Img} to
  * store the {@link PixelList} used in the components.
  *
@@ -57,7 +56,7 @@ import net.imglib2.type.numeric.integer.LongType;
  *
  * @author Tobias Pietzsch
  */
-final class PixelListComponentGenerator< T extends Type< T > > implements Component.Generator< T, PixelListComponentIntermediate< T > >
+final class PixelListComponentGenerator< T extends Type< T > > implements Component.Generator< T, PixelListComponent< T > >
 {
 	private final T maxValue;
 
@@ -93,14 +92,14 @@ final class PixelListComponentGenerator< T extends Type< T > > implements Compon
 	}
 
 	@Override
-	public PixelListComponentIntermediate< T > createComponent( T value )
+	public PixelListComponent< T > createComponent( T value )
 	{
-		return new PixelListComponentIntermediate< T >( value, this );
+		return new PixelListComponent< T >( value, this );
 	}
 
 	@Override
-	public PixelListComponentIntermediate< T > createMaxComponent()
+	public PixelListComponent< T > createMaxComponent()
 	{
-		return new PixelListComponentIntermediate< T >( maxValue, this );
+		return new PixelListComponent< T >( maxValue, this );
 	}
 }

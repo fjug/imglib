@@ -2,11 +2,10 @@
  * #%L
  * ImgLib2: a general-purpose, multidimensional image processing library.
  * %%
- * Copyright (C) 2009 - 2013 Stephan Preibisch, Tobias Pietzsch, Barry DeZonia,
- * Stephan Saalfeld, Albert Cardona, Curtis Rueden, Christian Dietz, Jean-Yves
- * Tinevez, Johannes Schindelin, Lee Kamentsky, Larry Lindsey, Grant Harris,
- * Mark Hiner, Aivar Grislis, Martin Horn, Nick Perry, Michael Zinsmaier,
- * Steffen Jaensch, Jan Funke, Mark Longair, and Dimiter Prodanov.
+ * Copyright (C) 2009 - 2012 Stephan Preibisch, Stephan Saalfeld, Tobias
+ * Pietzsch, Albert Cardona, Barry DeZonia, Curtis Rueden, Lee Kamentsky, Larry
+ * Lindsey, Johannes Schindelin, Christian Dietz, Grant Harris, Jean-Yves
+ * Tinevez, Steffen Jaensch, Mark Longair, Nick Perry, and Jan Funke.
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -40,27 +39,27 @@ package net.imglib2.algorithm.componenttree;
 import net.imglib2.Localizable;
 
 /**
- * This interface is used by {@link ComponentTree} to build the component tree
- * of an image. In the algorithm described by D. Nister and H. Stewenius in
- * "Linear Time Maximally Stable Extremal Regions" (ECCV 2008) a stack of
- * incomplete components is maintained while visiting the pixels of the input
- * image. {@link Component} represents an element on the component stack, i.e.,
- * a connected component in the making.
- *
+ * This interface is used by {@link ComponentTreeAlgorithm} to build the
+ * component tree of an image. In the algorithm described by D. Nister and H.
+ * Stewenius in "Linear Time Maximally Stable Extremal Regions" (ECCV 2008) a
+ * stack of incomplete components is maintained while visiting the pixels of the
+ * input image. {@link Component} represents an element on the component stack,
+ * i.e., a connected component in the making.
+ * 
  * It provides methods to get/set the threshold value for the connected
  * component, to add pixels to the component, and to merge it with another
  * component.
- *
- * {@link ComponentTree} uses a {@link Component.Generator} to create new
- * components and emits completed components to a {@link Component.Handler}.
- *
+ * 
+ * {@link ComponentTreeAlgorithm} uses a {@link Component.Generator} to create
+ * new components and emits completed components to a {@link Component.Handler}.
+ * 
  * @param <T>
  *            value type of the input image.
- *
+ * 
  * @author Tobias Pietzsch
  */
-public interface Component< T >
-{
+public interface Component< T > {
+
 	/**
 	 * Create new components.
 	 * 
@@ -69,8 +68,8 @@ public interface Component< T >
 	 * @param <C>
 	 *            component type.
 	 */
-	public interface Generator< T, C extends Component< T > >
-	{
+	public interface Generator< T, C extends Component< T > > {
+
 		/**
 		 * Create a new empty component with the given value (e.g., grey-level).
 		 * 
@@ -82,8 +81,8 @@ public interface Component< T >
 
 		/**
 		 * Create a component with a value (e.g., grey-level) greater than any
-		 * occurring in the input for the {@link ComponentTree}. This is used as a
-		 * terminator element on the component stack.
+		 * occurring in the input for the {@link ComponentTreeAlgorithm}. This
+		 * is used as a terminator element on the component stack.
 		 * 
 		 * @return new component
 		 */
@@ -91,19 +90,21 @@ public interface Component< T >
 	}
 
 	/**
-	 * Handle completed components that are output by {@link ComponentTree}.
+	 * Handle completed components that are output by
+	 * {@link ComponentTreeAlgorithm}.
 	 * 
 	 * @param <C>
 	 *            component type.
 	 */
-	public interface Handler< C >
-	{
+	public interface Handler< C > {
+
 		/**
-		 * {@link ComponentTree} calls this for every completed component. NOTE
-		 * THAT THE COMPONENT IS RE-USED BY {@link ComponentTree}! That is,
-		 * after calling emit() new pixels may be added, etc. Do not store the
-		 * component object but rather copy the relevant data!
-		 *
+		 * {@link ComponentTreeAlgorithm} calls this for every completed
+		 * component. NOTE THAT THE COMPONENT IS RE-USED BY
+		 * {@link ComponentTreeAlgorithm}! That is, after calling emit() new
+		 * pixels may be added, etc. Do not store the component object but
+		 * rather copy the relevant data!
+		 * 
 		 * @param component
 		 *            a completed component
 		 */
@@ -141,4 +142,3 @@ public interface Component< T >
 	 */
 	public abstract void merge( final Component< T > component );
 }
-
